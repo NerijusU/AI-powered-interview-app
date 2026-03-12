@@ -1,0 +1,24 @@
+---
+description: Interview Practice app scope, tech stack, and task requirements from 115.md
+alwaysApply: true
+---
+
+# Interview Practice App (115.md)
+
+This project is the **Interview Practice app** from the task in `115.md`. The app lives in this repo root (no separate app subfolder). When suggesting or modifying code, align with the task requirements and chosen stack.
+
+## Tech stack
+
+- **Front-end:** Next.js (JavaScript). Single-page app.
+- **Back-end / API:** OpenAI API. Use one of: GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, GPT-4o mini.
+
+## Required (from 115.md)
+
+1. Call the OpenAI API with the chosen model.
+2. **At least 5 system prompts** using different techniques (e.g. few-shot, Chain-of-Thought, zero-shot). Compare and use what works best.
+3. **Tune at least one OpenAI setting** (temperature, top_p, frequency_penalty, etc.).
+4. **At least one security guard** to prevent misuse (e.g. input validation, prompt validation, rate limits).
+
+## Reference
+
+- Full requirements, optional tasks, and evaluation criteria: see `115.md` in the project root.

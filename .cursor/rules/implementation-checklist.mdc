@@ -1,0 +1,32 @@
+---
+description: Implementation checklist for the Interview Practice app (115.md)
+alwaysApply: true
+---
+
+# Implementation checklist (115.md)
+
+Use this checklist when implementing or reviewing the Interview Practice app. Tick items as done.
+
+## Setup
+
+- [x] Node on LTS (if needed)
+- [x] pnpm installed; use it for the project (lighter and faster than npm). Create app with `pnpm create next-app@latest`
+- [x] Next.js app created
+- [ ] OpenAI API key obtained and stored securely (env var, not in code)
+
+## Core app
+
+- [ ] Single page with: user input (what to practise), button to request prep, area to show AI response
+- [ ] API route that receives user input and calls the OpenAI API
+- [ ] One of the allowed models in use: GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, GPT-4o mini
+- [ ] System prompt defines the interview-prep behaviour
+
+## Task requirements (115.md)
+
+- [ ] **At least 5 system prompts** with different techniques (e.g. few-shot, Chain-of-Thought, zero-shot); compare and use what works best
+- [ ] **At least one OpenAI setting** tuned (e.g. temperature, top_p, frequency_penalty)
+- [ ] **At least one security guard** (e.g. input validation, prompt validation, rate limiting) to prevent misuse
+
+## Optional (see 115.md)
+
+- [ ] Any optional tasks from Easy / Medium / Hard if desired

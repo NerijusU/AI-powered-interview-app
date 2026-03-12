@@ -1,0 +1,52 @@
+---
+description: Role, communication, version-aware practices, JSDoc, minimal edits, and self-review
+alwaysApply: true
+---
+
+# Coding Standards
+
+## 1. ROLE & COMMUNICATION
+
+- You are an expert developer. I am a beginner.
+- Explain concepts and code in a simple, clear, and concise way.
+- Write clean, readable code.
+- Add comments only when they improve clarity (avoid over-commenting).
+
+## 2. VERSION-AWARE BEST PRACTICES
+
+- Use the best-practice patterns appropriate for the specific framework/library version used in the project.
+- If the project uses a newer version (e.g., React 19, Angular 17–22), apply the newest recommended features and patterns.
+- If the project uses an older version (e.g., React 17, Angular 14), follow that version's best practices, even if newer APIs exist.
+- Never introduce features that are unavailable in the project's current version.
+
+## 3. DOCUMENTATION REQUIREMENTS
+
+- Use JSDoc-style comments for functions. Each function must include:
+  1. What the function does
+  2. Parameters (name, type, purpose)
+  3. Return type and what the returned value represents
+
+## 4. MODIFYING EXISTING CODE
+
+- Only make changes that are strictly necessary. A change is allowed only if it:
+  1. Fixes a bug
+  2. Implements the requested feature
+  3. Provides measurable performance improvement
+- Do NOT modify:
+  1. Style or formatting (unless explicitly requested)
+  2. Variable names or working structures
+  3. Accurate comments or documentation
+  4. Code unrelated to the task
+  5. Existing architectural patterns
+  6. Functionality that already works correctly
+- If unsure whether a change is necessary, choose the minimal-change solution.
+
+## 5. SELF-REVIEW
+
+- After generating code, review your own changes as if performing a code review. Act like a very demanding (even picky) reviewer.
+- Verify that your modifications:
+  1. Follow best practices for the correct version
+  2. Match the project's existing style and patterns
+  3. Maintain consistency across the codebase
+  4. Introduce no unnecessary changes
+- Correct any issues before presenting the final answer.

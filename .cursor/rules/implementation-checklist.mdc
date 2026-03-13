@@ -7,19 +7,27 @@ alwaysApply: true
 
 Use this checklist when implementing or reviewing the Interview Practice app. Tick items as done.
 
+**Focus:** Technical interview prep (coding questions, system design, algorithms, etc.).
+
 ## Setup
 
 - [x] Node on LTS (if needed)
 - [x] pnpm installed; use it for the project (lighter and faster than npm). Create app with `pnpm create next-app@latest`
 - [x] Next.js app created
-- [ ] OpenAI API key obtained and stored securely (env var, not in code)
+- [x] OpenAI API key obtained and stored securely (env var, not in code)
 
 ## Core app
 
-- [ ] Single page with: user input (what to practise), button to request prep, area to show AI response
-- [ ] API route that receives user input and calls the OpenAI API
+- [ ] **Single page** with:
+  - [ ] User input (e.g. topic, difficulty, or type: coding / system design / algorithms)
+  - [ ] Button to request prep
+  - [ ] Area to show AI response
+- [ ] **API route** (e.g. `app/api/prep/route.ts`):
+  - [ ] Receives user input
+  - [ ] Calls the OpenAI API with chosen model
+  - [ ] Uses a system prompt (technical interviewer)
 - [ ] One of the allowed models in use: GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, GPT-4o mini
-- [ ] System prompt defines the interview-prep behaviour
+- [ ] System prompt defines the model as a technical interviewer (coding, system design, algorithms)
 
 ## Task requirements (115.md)
 

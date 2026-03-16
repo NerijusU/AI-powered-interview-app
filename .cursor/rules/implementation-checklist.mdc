@@ -18,16 +18,16 @@ Use this checklist when implementing or reviewing the Interview Practice app. Ti
 
 ## Core app
 
-- [ ] **Single page** with:
-  - [ ] User input (e.g. topic, difficulty, or type: coding / system design / algorithms)
-  - [ ] Button to request prep
-  - [ ] Area to show AI response
+- [x] **Single page** with:
+  - [x] User input (e.g. topic, difficulty, or type: coding / system design / algorithms)
+  - [x] Button to request prep
+  - [x] Area to show AI response
 - [ ] **API route** (e.g. `app/api/prep/route.ts`):
-  - [ ] Receives user input
-  - [ ] Calls the OpenAI API with chosen model
-  - [ ] Uses a system prompt (technical interviewer)
-- [ ] One of the allowed models in use: GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, GPT-4o mini
-- [ ] System prompt defines the model as a technical interviewer (coding, system design, algorithms)
+  - [x] Receives user input
+  - [x] Calls the OpenAI API with chosen model
+  - [x] Uses a system prompt (technical interviewer)
+- [x] One of the allowed models in use: GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, GPT-4o mini
+- [x] System prompt defines the model as a technical interviewer (coding, system design, algorithms)
 
 ## Task requirements (115.md)
 

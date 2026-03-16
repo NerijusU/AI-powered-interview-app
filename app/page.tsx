@@ -6,9 +6,18 @@ import axios from "axios";
 type PrepType = "coding" | "system-design" | "algorithms";
 type Difficulty = "easy" | "medium" | "hard";
 
+const MODELS = [
+  { value: "gpt-4o-mini", label: "GPT-4o mini" },
+  { value: "gpt-4o", label: "GPT-4o" },
+  { value: "gpt-4.1", label: "GPT-4.1" },
+  { value: "gpt-4.1-mini", label: "GPT-4.1 mini" },
+  { value: "gpt-4.1-nano", label: "GPT-4.1 nano" },
+] as const;
+
 export default function Home() {
   const [prepType, setPrepType] = useState<PrepType>("coding");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  const [model, setModel] = useState<string>(MODELS[0].value);
   const [topic, setTopic] = useState("");
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,6 +36,7 @@ export default function Home() {
       const res = await axios.post<{ content?: string; message?: string }>("/api/prep", {
         prepType,
         difficulty,
+        model,
         topic: topic.trim() || undefined,
       });
       const data = res.data;
@@ -67,6 +77,24 @@ export default function Home() {
               <option value="coding">Coding questions</option>
               <option value="system-design">System design</option>
               <option value="algorithms">Algorithms</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="model" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Model
+            </label>
+            <select
+              id="model"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            >
+              {MODELS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
             </select>
           </div>
 

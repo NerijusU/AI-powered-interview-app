@@ -22,7 +22,7 @@ Use this checklist when implementing or reviewing the Interview Practice app. Ti
   - [x] User input (e.g. topic, difficulty, or type: coding / system design / algorithms)
   - [x] Button to request prep
   - [x] Area to show AI response
-- [ ] **API route** (e.g. `app/api/prep/route.ts`):
+- [x] **API route** (e.g. `app/api/prep/route.ts`):
   - [x] Receives user input
   - [x] Calls the OpenAI API with chosen model
   - [x] Uses a system prompt (technical interviewer)
@@ -37,4 +37,5 @@ Use this checklist when implementing or reviewing the Interview Practice app. Ti
 
 ## Optional (see 115.md)
 
-- [ ] Any optional tasks from Easy / Medium / Hard if desired
+- [x] Temperature slider (user can tune in UI)
+- [x] Job description field (paste job posting for tailored practice)

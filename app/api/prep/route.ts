@@ -12,7 +12,10 @@ const ALLOWED_MODELS = [
   "gpt-4.1-nano",
 ] as const;
 const DEFAULT_MODEL = "gpt-4o-mini";
-const MAX_TOPIC_LENGTH = 500; // limit of "topic" input length
+const MAX_TOPIC_LENGTH = 500;
+const MAX_JOB_DESCRIPTION_LENGTH = 3000;
+const TEMPERATURE_MIN = 0;
+const TEMPERATURE_MAX = 2;
 
 /** OpenAI completion settings (tune for quality vs randomness). */
 const DEFAULT_TEMPERATURE = 0.7; // untuned temperature is 1.0.  0.7 makes the model more focused / less random
@@ -70,6 +73,25 @@ function validateBody(body: unknown): string | null {
       return `Invalid model. Use one of: ${ALLOWED_MODELS.join(", ")}.`;
     }
   }
+
+  const temperature = parsedBody.temperature;
+  if (temperature !== undefined && temperature !== null) {
+    if (typeof temperature !== "number" || Number.isNaN(temperature)) {
+      return "temperature must be a number.";
+    }
+    if (temperature < TEMPERATURE_MIN || temperature > TEMPERATURE_MAX) {
+      return `temperature must be between ${TEMPERATURE_MIN} and ${TEMPERATURE_MAX}.`;
+    }
+  }
+
+  const jobDescription = parsedBody.jobDescription;
+  if (jobDescription !== undefined && jobDescription !== null) {
+    if (typeof jobDescription !== "string") return "jobDescription must be a string.";
+    if (jobDescription.length > MAX_JOB_DESCRIPTION_LENGTH) {
+      return `jobDescription must be at most ${MAX_JOB_DESCRIPTION_LENGTH} characters.`;
+    }
+  }
+
   return null;
 }
 
@@ -89,25 +111,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: validationError }, { status: 400 });
     }
 
-    const { prepType, difficulty, topic, technique, model } = body as {
+    const { prepType, difficulty, topic, technique, model, temperature: reqTemperature, jobDescription } = body as {
       prepType: string;
       difficulty: string;
       topic?: string;
       technique?: PromptTechnique;
       model?: string;
+      temperature?: number;
+      jobDescription?: string;
     };
     const allowedTechniques = getAllowedTechniques();
     const effectiveTechnique: PromptTechnique =
       technique && allowedTechniques.includes(technique) ? technique : "base";
     const systemPrompt = buildSystemPrompt(prepType, difficulty, effectiveTechnique);
-    const userContent = topic?.trim()
+
+    let userContent = topic?.trim()
       ? `I want to practise: ${prepType}, difficulty: ${difficulty}. Topic or focus: ${topic.trim()}.`
       : `I want to practise: ${prepType}, difficulty: ${difficulty}.`;
+    if (jobDescription?.trim()) {
+      userContent += `\n\nJob description (tailor practice to this role):\n${jobDescription.trim()}`;
+    }
 
     const modelId =
       model && ALLOWED_MODELS.includes(model as (typeof ALLOWED_MODELS)[number])
         ? model
         : DEFAULT_MODEL;
+
+    const effectiveTemperature =
+      typeof reqTemperature === "number" &&
+      !Number.isNaN(reqTemperature) &&
+      reqTemperature >= TEMPERATURE_MIN &&
+      reqTemperature <= TEMPERATURE_MAX
+        ? reqTemperature
+        : DEFAULT_TEMPERATURE;
 
     const completion = await openai.chat.completions.create({
       model: modelId,
@@ -115,7 +151,7 @@ export async function POST(request: NextRequest) {
         { role: "system", content: systemPrompt },
         { role: "user", content: userContent },
       ],
-      temperature: DEFAULT_TEMPERATURE,
+      temperature: effectiveTemperature,
       max_tokens: DEFAULT_MAX_TOKENS,
     });
 

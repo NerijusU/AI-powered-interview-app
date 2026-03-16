@@ -25,7 +25,9 @@ export default function Home() {
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [technique, setTechnique] = useState<PromptTechnique>("base");
   const [model, setModel] = useState<string>("gpt-4o-mini");
+  const [temperature, setTemperature] = useState(0.7);
   const [topic, setTopic] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +49,9 @@ export default function Home() {
           difficulty,
           technique,
           model,
+          temperature,
           topic: topic.trim() || undefined,
+          jobDescription: jobDescription.trim() || undefined,
         },
       );
       const data = res.data;
@@ -169,6 +173,48 @@ export default function Home() {
               placeholder="e.g. Arrays, Binary trees, URL shortener"
               className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="jobDescription"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
+              Job description{" "}
+              <span className="text-zinc-500 dark:text-zinc-500">
+                (optional)
+              </span>
+            </label>
+            <textarea
+              id="jobDescription"
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste the job posting to get tailored practice for this role."
+              rows={4}
+              className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="temperature"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
+              Temperature: {temperature}
+            </label>
+            <input
+              id="temperature"
+              type="range"
+              min={0}
+              max={2}
+              step={0.1}
+              value={temperature}
+              onChange={(e) => setTemperature(Number(e.target.value))}
+              className="mt-1 block w-full accent-zinc-700 dark:accent-zinc-300"
+            />
+            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+              Lower = more focused, higher = more varied responses.
+            </p>
           </div>
 
           <div>

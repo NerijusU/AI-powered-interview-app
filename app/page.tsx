@@ -5,6 +5,12 @@ import axios from "axios";
 
 type PrepType = "coding" | "system-design" | "algorithms";
 type Difficulty = "easy" | "medium" | "hard";
+type PromptTechnique =
+  | "base"
+  | "zero-shot"
+  | "few-shot"
+  | "chain-of-thought"
+  | "rubric";
 
 const MODELS = [
   { value: "gpt-4.1-nano", label: "GPT-4.1 nano" },
@@ -17,6 +23,7 @@ const MODELS = [
 export default function Home() {
   const [prepType, setPrepType] = useState<PrepType>("coding");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  const [technique, setTechnique] = useState<PromptTechnique>("base");
   const [model, setModel] = useState<string>("gpt-4o-mini");
   const [topic, setTopic] = useState("");
   const [response, setResponse] = useState<string | null>(null);
@@ -38,6 +45,7 @@ export default function Home() {
         {
           prepType,
           difficulty,
+          technique,
           model,
           topic: topic.trim() || undefined,
         },
@@ -86,6 +94,41 @@ export default function Home() {
               <option value="coding">Coding questions</option>
               <option value="system-design">System design</option>
               <option value="algorithms">Algorithms</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="technique"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
+              Prompt style{" "}
+              <span
+                className="cursor-help text-xs font-normal text-zinc-500 dark:text-zinc-400"
+                title={[
+                  "Single question: one interview-style question (base).",
+                  "Direct question (no examples): zero-shot prompt.",
+                  "Question with examples: few-shot prompt using sample patterns.",
+                  "Question with deeper reasoning: chain-of-thought; the model reasons internally but shows a concise question.",
+                  "Feedback with rubric: rubric-style evaluation of an answer.",
+                ].join("\n")}
+              >
+                (what&apos;s this?)
+              </span>
+            </label>
+            <select
+              id="technique"
+              value={technique}
+              onChange={(e) => setTechnique(e.target.value as PromptTechnique)}
+              className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            >
+              <option value="base">Single question</option>
+              <option value="zero-shot">Direct question (no examples)</option>
+              <option value="few-shot">Question with examples</option>
+              <option value="chain-of-thought">
+                Question with deeper reasoning
+              </option>
+              <option value="rubric">Feedback with rubric</option>
             </select>
           </div>
 

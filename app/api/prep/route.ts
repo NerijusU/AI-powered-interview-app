@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
+import { buildSystemPrompt, getAllowedTechniques, type PromptTechnique } from "./prompts";
 
 const ALLOWED_PREP_TYPES = ["coding", "system-design", "algorithms"] as const;
 const ALLOWED_DIFFICULTIES = ["easy", "medium", "hard"] as const;
@@ -20,37 +21,6 @@ const DEFAULT_MAX_TOKENS = 1024; // limit of response length
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
-/**
- * Builds the system prompt for the technical interviewer based on prep type and difficulty.
- * @param prepType - Type of prep: coding, system-design, or algorithms
- * @param difficulty - Difficulty level: easy, medium, or hard
- * @returns System prompt string for the LLM
- */
-function buildSystemPrompt(prepType: string, difficulty: string): string {
-  const base =
-    "You are a technical interviewer helping someone practise for software engineering interviews. " +
-    "Give clear, focused practice appropriate for the requested type and difficulty. " +
-    "Do not answer off-topic or non-technical requests.";
-  const typeGuidance: Record<string, string> = {
-    coding:
-      "Focus on coding problems: data structures, algorithms, and clean code. Provide one practice question or a short exercise.",
-    "system-design":
-      "Focus on system design: scalability, components, trade-offs. Provide a design prompt or discussion questions.",
-    algorithms:
-      "Focus on algorithms and complexity: suggest a problem or concept to practise, with hints if appropriate.",
-  };
-  const difficultyGuidance: Record<string, string> = {
-    easy: "Keep it accessible; suitable for someone new to the topic.",
-    medium: "Aim for mid-level depth; assume some prior knowledge.",
-    hard: "Challenge with senior-level or interview-depth content.",
-  };
-  return [
-    base,
-    typeGuidance[prepType] ?? typeGuidance.coding,
-    difficultyGuidance[difficulty] ?? difficultyGuidance.medium,
-  ].join(" ");
-}
 
 /**
  * SECURITY GUARD: Validates the request body. Returns an error message or null if valid.
@@ -84,6 +54,15 @@ function validateBody(body: unknown): string | null {
     if (topic.length > MAX_TOPIC_LENGTH)
       return `topic must be at most ${MAX_TOPIC_LENGTH} characters.`;
   }
+  const technique = parsedBody.technique;
+  if (technique !== undefined && technique !== null) {
+    if (typeof technique !== "string") return "technique must be a string.";
+    const allowed = getAllowedTechniques();
+    if (!allowed.includes(technique as PromptTechnique)) {
+      return `Invalid technique. Use one of: ${allowed.join(", ")}.`;
+    }
+  }
+
   const model = parsedBody.model;
   if (model !== undefined && model !== null) {
     if (typeof model !== "string") return "model must be a string.";
@@ -110,13 +89,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: validationError }, { status: 400 });
     }
 
-    const { prepType, difficulty, topic, model } = body as {
+    const { prepType, difficulty, topic, technique, model } = body as {
       prepType: string;
       difficulty: string;
       topic?: string;
+      technique?: PromptTechnique;
       model?: string;
     };
-    const systemPrompt = buildSystemPrompt(prepType, difficulty);
+    const allowedTechniques = getAllowedTechniques();
+    const effectiveTechnique: PromptTechnique =
+      technique && allowedTechniques.includes(technique) ? technique : "base";
+    const systemPrompt = buildSystemPrompt(prepType, difficulty, effectiveTechnique);
     const userContent = topic?.trim()
       ? `I want to practise: ${prepType}, difficulty: ${difficulty}. Topic or focus: ${topic.trim()}.`
       : `I want to practise: ${prepType}, difficulty: ${difficulty}.`;

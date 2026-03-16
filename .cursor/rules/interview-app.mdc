@@ -7,6 +7,10 @@ alwaysApply: true
 
 This project is the **Interview Practice app** from the task in `115.md`. The app lives in this repo root (no separate app subfolder). When suggesting or modifying code, align with the task requirements and chosen stack.
 
+## Interview prep focus
+
+**Technical:** coding questions, system design, algorithms. The app helps users practise for technical interviews (not behavioural or other domains unless extended later).
+
 ## Tech stack
 
 - **Front-end:** Next.js (JavaScript). Single-page app.

@@ -53,7 +53,7 @@ function buildSystemPrompt(prepType: string, difficulty: string): string {
 }
 
 /**
- * Validates the request body. Returns an error message or null if valid.
+ * SECURITY GUARD: Validates the request body. Returns an error message or null if valid.
  * @param body - Parsed request body
  * @returns Error message or null
  */

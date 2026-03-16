@@ -7,17 +7,17 @@ type PrepType = "coding" | "system-design" | "algorithms";
 type Difficulty = "easy" | "medium" | "hard";
 
 const MODELS = [
+  { value: "gpt-4.1-nano", label: "GPT-4.1 nano" },
+  { value: "gpt-4.1-mini", label: "GPT-4.1 mini" },
   { value: "gpt-4o-mini", label: "GPT-4o mini" },
   { value: "gpt-4o", label: "GPT-4o" },
   { value: "gpt-4.1", label: "GPT-4.1" },
-  { value: "gpt-4.1-mini", label: "GPT-4.1 mini" },
-  { value: "gpt-4.1-nano", label: "GPT-4.1 nano" },
 ] as const;
 
 export default function Home() {
   const [prepType, setPrepType] = useState<PrepType>("coding");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
-  const [model, setModel] = useState<string>(MODELS[0].value);
+  const [model, setModel] = useState<string>("gpt-4o-mini");
   const [topic, setTopic] = useState("");
   const [response, setResponse] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,17 +33,23 @@ export default function Home() {
     setResponse(null);
     setLoading(true);
     try {
-      const res = await axios.post<{ content?: string; message?: string }>("/api/prep", {
-        prepType,
-        difficulty,
-        model,
-        topic: topic.trim() || undefined,
-      });
+      const res = await axios.post<{ content?: string; message?: string }>(
+        "/api/prep",
+        {
+          prepType,
+          difficulty,
+          model,
+          topic: topic.trim() || undefined,
+        },
+      );
       const data = res.data;
       setResponse(data.content ?? data.message ?? "No content returned.");
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.data != null) {
-        const msg = typeof err.response.data === "string" ? err.response.data : (err.response.data as { message?: string }).message;
+        const msg =
+          typeof err.response.data === "string"
+            ? err.response.data
+            : (err.response.data as { message?: string }).message;
         setError(msg ?? err.message);
       } else {
         setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -65,7 +71,10 @@ export default function Home() {
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div>
-            <label htmlFor="prepType" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="prepType"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               What to practise
             </label>
             <select
@@ -81,25 +90,10 @@ export default function Home() {
           </div>
 
           <div>
-            <label htmlFor="model" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Model
-            </label>
-            <select
-              id="model"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            <label
+              htmlFor="difficulty"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
             >
-              {MODELS.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="difficulty" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Difficulty
             </label>
             <select
@@ -115,8 +109,14 @@ export default function Home() {
           </div>
 
           <div>
-            <label htmlFor="topic" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Topic <span className="text-zinc-500 dark:text-zinc-500">(optional)</span>
+            <label
+              htmlFor="topic"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
+              Topic{" "}
+              <span className="text-zinc-500 dark:text-zinc-500">
+                (optional)
+              </span>
             </label>
             <input
               id="topic"
@@ -126,6 +126,27 @@ export default function Home() {
               placeholder="e.g. Arrays, Binary trees, URL shortener"
               className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="model"
+              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
+              AI Model
+            </label>
+            <select
+              id="model"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+            >
+              {MODELS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <button
@@ -139,7 +160,9 @@ export default function Home() {
 
         {(error || response) && (
           <section className="mt-8 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 sm:p-5">
-            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Response</h2>
+            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Response
+            </h2>
             {error && (
               <p className="mt-2 text-red-600 dark:text-red-400" role="alert">
                 {error}

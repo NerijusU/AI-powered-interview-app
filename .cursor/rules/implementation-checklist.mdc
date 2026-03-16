@@ -32,8 +32,8 @@ Use this checklist when implementing or reviewing the Interview Practice app. Ti
 ## Task requirements (115.md)
 
 - [ ] **At least 5 system prompts** with different techniques (e.g. few-shot, Chain-of-Thought, zero-shot); compare and use what works best
-- [ ] **At least one OpenAI setting** tuned (e.g. temperature, top_p, frequency_penalty)
-- [ ] **At least one security guard** (e.g. input validation, prompt validation, rate limiting) to prevent misuse
+- [x] **At least one OpenAI setting** tuned (e.g. temperature, top_p, frequency_penalty)
+- [x] **At least one security guard** (e.g. input validation, prompt validation, rate limiting) to prevent misuse
 
 ## Optional (see 115.md)
 

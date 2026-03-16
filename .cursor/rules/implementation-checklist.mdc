@@ -39,3 +39,4 @@ Use this checklist when implementing or reviewing the Interview Practice app. Ti
 
 - [x] Temperature slider (user can tune in UI)
 - [x] Job description field (paste job posting for tailored practice)
+- [x] deployed on [Vercel](https://ai-powered-interview-app-nu.vercel.app/)

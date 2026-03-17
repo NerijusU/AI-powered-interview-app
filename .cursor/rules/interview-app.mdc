@@ -14,7 +14,7 @@ This project is the **Interview Practice app** from the task in `115.md`. The ap
 ## Tech stack
 
 - **Front-end:** Next.js (JavaScript). Single-page app.
-- **Back-end / API:** OpenAI API. Use one of: GPT-4.1, GPT-4.1 mini, GPT-4.1 nano, GPT-4o, GPT-4o mini.
+- **Back-end / API:** OpenAI API. Allowed models: gpt-4.1-nano (smallest), gpt-4o-mini (medium, default), gpt-3.5-turbo-16k (largest).
 
 ## Required (from 115.md)
 

@@ -1,15 +1,18 @@
 import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
-import { buildSystemPrompt, getAllowedTechniques, type PromptTechnique } from "./prompts";
+import {
+  buildSystemPrompt,
+  buildUserContent,
+  getAllowedTechniques,
+  type PromptTechnique,
+} from "@/lib/prompts";
 
 const ALLOWED_PREP_TYPES = ["coding", "system-design", "algorithms"] as const;
 const ALLOWED_DIFFICULTIES = ["easy", "medium", "hard"] as const;
 const ALLOWED_MODELS = [
-  "gpt-4o-mini",
-  "gpt-4o",
-  "gpt-4.1",
-  "gpt-4.1-mini",
   "gpt-4.1-nano",
+  "gpt-4o-mini",
+  "gpt-3.5-turbo-16k",
 ] as const;
 const DEFAULT_MODEL = "gpt-4o-mini";
 const MAX_TOPIC_LENGTH = 500;
@@ -86,7 +89,8 @@ function validateBody(body: unknown): string | null {
 
   const jobDescription = parsedBody.jobDescription;
   if (jobDescription !== undefined && jobDescription !== null) {
-    if (typeof jobDescription !== "string") return "jobDescription must be a string.";
+    if (typeof jobDescription !== "string")
+      return "jobDescription must be a string.";
     if (jobDescription.length > MAX_JOB_DESCRIPTION_LENGTH) {
       return `jobDescription must be at most ${MAX_JOB_DESCRIPTION_LENGTH} characters.`;
     }
@@ -111,7 +115,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: validationError }, { status: 400 });
     }
 
-    const { prepType, difficulty, topic, technique, model, temperature: reqTemperature, jobDescription } = body as {
+    const {
+      prepType,
+      difficulty,
+      topic,
+      technique,
+      model,
+      temperature: reqTemperature,
+      jobDescription,
+    } = body as {
       prepType: string;
       difficulty: string;
       topic?: string;
@@ -123,14 +135,17 @@ export async function POST(request: NextRequest) {
     const allowedTechniques = getAllowedTechniques();
     const effectiveTechnique: PromptTechnique =
       technique && allowedTechniques.includes(technique) ? technique : "base";
-    const systemPrompt = buildSystemPrompt(prepType, difficulty, effectiveTechnique);
-
-    let userContent = topic?.trim()
-      ? `I want to practise: ${prepType}, difficulty: ${difficulty}. Topic or focus: ${topic.trim()}.`
-      : `I want to practise: ${prepType}, difficulty: ${difficulty}.`;
-    if (jobDescription?.trim()) {
-      userContent += `\n\nJob description (tailor practice to this role):\n${jobDescription.trim()}`;
-    }
+    const systemPrompt = buildSystemPrompt(
+      prepType,
+      difficulty,
+      effectiveTechnique,
+    );
+    const userContent = buildUserContent(
+      prepType,
+      difficulty,
+      topic?.trim(),
+      jobDescription?.trim(),
+    );
 
     const modelId =
       model && ALLOWED_MODELS.includes(model as (typeof ALLOWED_MODELS)[number])

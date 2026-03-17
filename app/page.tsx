@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import axios from "axios";
+import {
+  buildSystemPrompt,
+  buildUserContent,
+  getAllowedTechniques,
+  type PromptTechnique as PromptTechniqueType,
+} from "@/lib/prompts";
 
 type PrepType = "coding" | "system-design" | "algorithms";
 type Difficulty = "easy" | "medium" | "hard";
@@ -13,11 +19,9 @@ type PromptTechnique =
   | "rubric";
 
 const MODELS = [
-  { value: "gpt-4.1-nano", label: "GPT-4.1 nano" },
-  { value: "gpt-4.1-mini", label: "GPT-4.1 mini" },
-  { value: "gpt-4o-mini", label: "GPT-4o mini" },
-  { value: "gpt-4o", label: "GPT-4o" },
-  { value: "gpt-4.1", label: "GPT-4.1" },
+  { value: "gpt-4.1-nano", label: "GPT-4.1 nano (smallest)" },
+  { value: "gpt-4o-mini", label: "GPT-4o mini (medium)" },
+  { value: "gpt-3.5-turbo-16k", label: "GPT-3.5 Turbo 16k (largest)" },
 ] as const;
 
 export default function Home() {
@@ -41,18 +45,36 @@ export default function Home() {
     setError(null);
     setResponse(null);
     setLoading(true);
+    const payload = {
+      prepType,
+      difficulty,
+      technique,
+      model,
+      temperature,
+      topic: topic.trim() || undefined,
+      jobDescription: jobDescription.trim() || undefined,
+    };
+    const allowedTechniques = getAllowedTechniques();
+    const effectiveTechnique: PromptTechniqueType =
+      technique && allowedTechniques.includes(technique) ? technique : "base";
+    const systemPrompt = buildSystemPrompt(
+      prepType,
+      difficulty,
+      effectiveTechnique,
+    );
+    const userContent = buildUserContent(
+      prepType,
+      difficulty,
+      topic.trim() || undefined,
+      jobDescription.trim() || undefined,
+    );
+    console.log(
+      `--- Request (prompt sent to OpenAI) ---\nSystem prompt: ${systemPrompt}\nUser message: ${userContent}\nModel: ${model} | Temperature: ${temperature}\n--------------------------------------`,
+    );
     try {
       const res = await axios.post<{ content?: string; message?: string }>(
         "/api/prep",
-        {
-          prepType,
-          difficulty,
-          technique,
-          model,
-          temperature,
-          topic: topic.trim() || undefined,
-          jobDescription: jobDescription.trim() || undefined,
-        },
+        payload,
       );
       const data = res.data;
       setResponse(data.content ?? data.message ?? "No content returned.");

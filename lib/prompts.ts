@@ -106,3 +106,26 @@ export function buildSystemPrompt(
       return [common, BASE_SUFFIX].join(" ");
   }
 }
+
+/**
+ * Builds the user message sent to the API (prep type, difficulty, optional topic and job description).
+ * @param prepType - Type of prep: coding, system-design, or algorithms
+ * @param difficulty - Difficulty level: easy, medium, or hard
+ * @param topic - Optional topic or focus
+ * @param jobDescription - Optional job description to tailor practice
+ * @returns User message string for the LLM
+ */
+export function buildUserContent(
+  prepType: string,
+  difficulty: string,
+  topic?: string,
+  jobDescription?: string,
+): string {
+  let userContent = topic?.trim()
+    ? `I want to practise: ${prepType}, difficulty: ${difficulty}. Topic or focus: ${topic.trim()}.`
+    : `I want to practise: ${prepType}, difficulty: ${difficulty}.`;
+  if (jobDescription?.trim()) {
+    userContent += `\n\nJob description (tailor practice to this role):\n${jobDescription.trim()}`;
+  }
+  return userContent;
+}

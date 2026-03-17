@@ -19,6 +19,8 @@ const MAX_TOPIC_LENGTH = 500;
 const MAX_JOB_DESCRIPTION_LENGTH = 3000;
 const TEMPERATURE_MIN = 0;
 const TEMPERATURE_MAX = 2;
+const MAX_CONVERSATION_MESSAGES = 50;
+const MAX_MESSAGE_CONTENT_LENGTH = 8192;
 
 /** OpenAI completion settings (tune for quality vs randomness). */
 const DEFAULT_TEMPERATURE = 0.7; // untuned temperature is 1.0.  0.7 makes the model more focused / less random
@@ -96,6 +98,29 @@ function validateBody(body: unknown): string | null {
     }
   }
 
+  const messages = parsedBody.messages;
+  if (messages !== undefined && messages !== null) {
+    if (!Array.isArray(messages))
+      return "messages must be an array.";
+    if (messages.length > MAX_CONVERSATION_MESSAGES) {
+      return `messages must have at most ${MAX_CONVERSATION_MESSAGES} items.`;
+    }
+    for (let i = 0; i < messages.length; i++) {
+      const m = messages[i];
+      if (m == null || typeof m !== "object")
+        return `messages[${i}] must be an object with role and content.`;
+      const role = (m as Record<string, unknown>).role;
+      const content = (m as Record<string, unknown>).content;
+      if (role !== "user" && role !== "assistant")
+        return `messages[${i}].role must be "user" or "assistant".`;
+      if (typeof content !== "string")
+        return `messages[${i}].content must be a string.`;
+      if (content.length > MAX_MESSAGE_CONTENT_LENGTH) {
+        return `messages[${i}].content must be at most ${MAX_MESSAGE_CONTENT_LENGTH} characters.`;
+      }
+    }
+  }
+
   return null;
 }
 
@@ -123,6 +148,7 @@ export async function POST(request: NextRequest) {
       model,
       temperature: reqTemperature,
       jobDescription,
+      messages: conversationMessages,
     } = body as {
       prepType: string;
       difficulty: string;
@@ -131,6 +157,7 @@ export async function POST(request: NextRequest) {
       model?: string;
       temperature?: number;
       jobDescription?: string;
+      messages?: Array<{ role: "user" | "assistant"; content: string }>;
     };
     const allowedTechniques = getAllowedTechniques();
     const effectiveTechnique: PromptTechnique =
@@ -139,12 +166,6 @@ export async function POST(request: NextRequest) {
       prepType,
       difficulty,
       effectiveTechnique,
-    );
-    const userContent = buildUserContent(
-      prepType,
-      difficulty,
-      topic?.trim(),
-      jobDescription?.trim(),
     );
 
     const modelId =
@@ -160,12 +181,35 @@ export async function POST(request: NextRequest) {
         ? reqTemperature
         : DEFAULT_TEMPERATURE;
 
+    const hasConversation =
+      Array.isArray(conversationMessages) && conversationMessages.length > 0;
+
+    const baseUserContent = buildUserContent(
+      prepType,
+      difficulty,
+      topic?.trim(),
+      jobDescription?.trim(),
+    );
+
+    const openaiMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: "system", content: systemPrompt },
+    ];
+
+    if (hasConversation) {
+      openaiMessages.push(
+        { role: "user", content: baseUserContent },
+        ...conversationMessages.map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+      );
+    } else {
+      openaiMessages.push({ role: "user", content: baseUserContent });
+    }
+
     const completion = await openai.chat.completions.create({
       model: modelId,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userContent },
-      ],
+      messages: openaiMessages,
       temperature: effectiveTemperature,
       max_tokens: DEFAULT_MAX_TOKENS,
     });

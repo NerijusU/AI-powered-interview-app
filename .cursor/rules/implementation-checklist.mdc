@@ -35,6 +35,12 @@ Use this checklist when implementing or reviewing the Interview Practice app. Ti
 - [x] **At least one OpenAI setting** tuned (e.g. temperature, top_p, frequency_penalty)
 - [x] **At least one security guard** (e.g. input validation, prompt validation, rate limiting) to prevent misuse
 
+## Conversation workflow
+
+- [x] **Start interview** – user selects parameters and gets first question (one request)
+- [x] **Multi-turn chat** – user can send follow-up messages (hints, next question, etc.) until Reset
+- [x] **Reset** – clears conversation and keeps parameters so user can start again with same settings
+
 ## Optional (see 115.md)
 
 - [x] Temperature slider (user can tune in UI)

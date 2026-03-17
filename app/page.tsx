@@ -2,13 +2,6 @@
 
 import { useState } from "react";
 import axios from "axios";
-import {
-  buildSystemPrompt,
-  buildUserContent,
-  getAllowedTechniques,
-  type PromptTechnique as PromptTechniqueType,
-} from "@/lib/prompts";
-
 type PrepType = "coding" | "system-design" | "algorithms";
 type Difficulty = "easy" | "medium" | "hard";
 type PromptTechnique =
@@ -17,6 +10,8 @@ type PromptTechnique =
   | "few-shot"
   | "chain-of-thought"
   | "rubric";
+
+type ChatMessage = { role: "user" | "assistant"; content: string };
 
 const MODELS = [
   { value: "gpt-4.1-nano", label: "GPT-4.1 nano (smallest)" },
@@ -32,20 +27,18 @@ export default function Home() {
   const [temperature, setTemperature] = useState(0.7);
   const [topic, setTopic] = useState("");
   const [jobDescription, setJobDescription] = useState("");
-  const [response, setResponse] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isSessionActive = messages.length > 0;
+
   /**
-   * Sends the form data to the prep API and shows the returned content or an error.
-   * @param e - Form submit event
+   * Builds the request payload (session params, optional conversation messages).
    */
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setResponse(null);
-    setLoading(true);
-    const payload = {
+  function buildPayload(conversationMessages?: ChatMessage[]) {
+    return {
       prepType,
       difficulty,
       technique,
@@ -53,31 +46,35 @@ export default function Home() {
       temperature,
       topic: topic.trim() || undefined,
       jobDescription: jobDescription.trim() || undefined,
+      ...(conversationMessages &&
+        conversationMessages.length > 0 && { messages: conversationMessages }),
     };
-    const allowedTechniques = getAllowedTechniques();
-    const effectiveTechnique: PromptTechniqueType =
-      technique && allowedTechniques.includes(technique) ? technique : "base";
-    const systemPrompt = buildSystemPrompt(
-      prepType,
-      difficulty,
-      effectiveTechnique,
+  }
+
+  /**
+   * Calls the prep API and returns the assistant content or throws.
+   */
+  async function sendToApi(conversationMessages?: ChatMessage[]): Promise<string> {
+    const payload = buildPayload(conversationMessages);
+    const res = await axios.post<{ content?: string; message?: string }>(
+      "/api/prep",
+      payload,
     );
-    const userContent = buildUserContent(
-      prepType,
-      difficulty,
-      topic.trim() || undefined,
-      jobDescription.trim() || undefined,
-    );
-    console.log(
-      `--- Request (prompt sent to OpenAI) ---\nSystem prompt: ${systemPrompt}\nUser message: ${userContent}\nModel: ${model} | Temperature: ${temperature}\n--------------------------------------`,
-    );
+    const data = res.data;
+    const content = data.content ?? data.message ?? "No content returned.";
+    return content;
+  }
+
+  /**
+   * Starts the interview: requests the first question and appends it to messages.
+   */
+  async function handleStartInterview(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
     try {
-      const res = await axios.post<{ content?: string; message?: string }>(
-        "/api/prep",
-        payload,
-      );
-      const data = res.data;
-      setResponse(data.content ?? data.message ?? "No content returned.");
+      const content = await sendToApi();
+      setMessages([{ role: "assistant", content }]);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.data != null) {
         const msg =
@@ -93,6 +90,50 @@ export default function Home() {
     }
   }
 
+  /**
+   * Sends the current chat input as a user message, gets the assistant reply, and appends both to messages.
+   */
+  async function handleSendMessage(e: React.FormEvent) {
+    e.preventDefault();
+    const text = chatInput.trim();
+    if (!text || loading) return;
+    setError(null);
+    setChatInput("");
+    const newUserMessage: ChatMessage = { role: "user", content: text };
+    setMessages((prev) => [...prev, newUserMessage]);
+    setLoading(true);
+    try {
+      const nextMessages: ChatMessage[] = [...messages, newUserMessage];
+      const content = await sendToApi(nextMessages);
+      setMessages((prev) => [...prev, { role: "assistant", content }]);
+    } catch (err) {
+      setMessages((prev) => prev.slice(0, -1));
+      if (axios.isAxiosError(err) && err.response?.data != null) {
+        const msg =
+          typeof err.response.data === "string"
+            ? err.response.data
+            : (err.response.data as { message?: string }).message;
+        setError(msg ?? err.message);
+      } else {
+        setError(err instanceof Error ? err.message : "Something went wrong.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /**
+   * Clears the conversation and keeps current parameters.
+   */
+  function handleReset() {
+    if (loading) {
+      return;
+    }
+    setMessages([]);
+    setChatInput("");
+    setError(null);
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans">
       <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
@@ -103,7 +144,12 @@ export default function Home() {
           Technical prep: coding questions, system design, algorithms.
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form onSubmit={handleStartInterview} className="mt-8 space-y-6">
+          <fieldset
+            className="space-y-6"
+            disabled={isSessionActive}
+            aria-label="Interview parameters"
+          >
           <div>
             <label
               htmlFor="prepType"
@@ -115,7 +161,7 @@ export default function Home() {
               id="prepType"
               value={prepType}
               onChange={(e) => setPrepType(e.target.value as PrepType)}
-              className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+              className="mt-1 block w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="coding">Coding questions</option>
               <option value="system-design">System design</option>
@@ -259,31 +305,86 @@ export default function Home() {
               ))}
             </select>
           </div>
+          </fieldset>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            {loading ? "Loading…" : "Get practice"}
-          </button>
+          {!isSessionActive ? (
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              {loading ? "Loading…" : "Start interview"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleReset}
+              disabled={loading}
+              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Reset interview
+            </button>
+          )}
         </form>
 
-        {(error || response) && (
-          <section className="mt-8 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 sm:p-5">
-            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Response
-            </h2>
-            {error && (
-              <p className="mt-2 text-red-600 dark:text-red-400" role="alert">
-                {error}
-              </p>
-            )}
-            {response && !error && (
-              <div className="mt-2 whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
-                {response}
-              </div>
-            )}
+        {error && (
+          <section className="mt-6 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4">
+            <p className="text-red-600 dark:text-red-400" role="alert">
+              {error}
+            </p>
+          </section>
+        )}
+
+        {isSessionActive && (
+          <section
+            className="mt-8 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 overflow-hidden"
+            aria-label="Conversation"
+          >
+            <div className="max-h-[50vh] min-h-[12rem] overflow-y-auto p-4 space-y-4">
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={
+                    msg.role === "user"
+                      ? "ml-8 rounded-lg bg-zinc-200 dark:bg-zinc-700 px-3 py-2 text-right"
+                      : "mr-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 px-3 py-2 text-left"
+                  }
+                >
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    {msg.role === "user" ? "You" : "Interviewer"}
+                  </span>
+                  <div className="mt-1 whitespace-pre-wrap text-zinc-800 dark:text-zinc-200">
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Thinking…
+                </p>
+              )}
+            </div>
+            <form
+              onSubmit={handleSendMessage}
+              className="flex gap-2 p-4 border-t border-zinc-200 dark:border-zinc-700"
+            >
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Your answer, follow-up question…"
+                disabled={loading}
+                className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 disabled:opacity-60"
+                aria-label="Message"
+              />
+              <button
+                type="submit"
+                disabled={loading || !chatInput.trim()}
+                className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+              >
+                Send
+              </button>
+            </form>
           </section>
         )}
       </main>

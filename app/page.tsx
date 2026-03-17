@@ -307,7 +307,7 @@ export default function Home() {
           </div>
           </fieldset>
 
-          {!isSessionActive ? (
+          {!isSessionActive && (
             <button
               type="submit"
               disabled={loading}
@@ -315,17 +315,19 @@ export default function Home() {
             >
               {loading ? "Loading…" : "Start interview"}
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleReset}
-              disabled={loading}
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Reset interview
-            </button>
           )}
         </form>
+
+        {isSessionActive && (
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={loading}
+            className="mt-6 w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Reset interview
+          </button>
+        )}
 
         {error && (
           <section className="mt-6 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4">

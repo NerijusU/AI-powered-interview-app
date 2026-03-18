@@ -100,14 +100,13 @@ function validateBody(body: unknown): string | null {
 
   const messages = parsedBody.messages;
   if (messages !== undefined && messages !== null) {
-    if (!Array.isArray(messages))
-      return "messages must be an array.";
+    if (!Array.isArray(messages)) return "messages must be an array.";
     if (messages.length > MAX_CONVERSATION_MESSAGES) {
       return `messages must have at most ${MAX_CONVERSATION_MESSAGES} items.`;
     }
     for (let i = 0; i < messages.length; i++) {
       const m = messages[i];
-      if (m == null || typeof m !== "object")
+      if (m == null || typeof m !== "object" || Array.isArray(m))
         return `messages[${i}] must be an object with role and content.`;
       const role = (m as Record<string, unknown>).role;
       const content = (m as Record<string, unknown>).content;
@@ -115,6 +114,12 @@ function validateBody(body: unknown): string | null {
         return `messages[${i}].role must be "user" or "assistant".`;
       if (typeof content !== "string")
         return `messages[${i}].content must be a string.`;
+
+      // SECURITY GUARD: Reject empty/whitespace-only prompts and enforce length.
+      const trimmedContent = content.trim();
+      if (trimmedContent.length === 0) {
+        return `messages[${i}].content must not be empty.`;
+      }
       if (content.length > MAX_MESSAGE_CONTENT_LENGTH) {
         return `messages[${i}].content must be at most ${MAX_MESSAGE_CONTENT_LENGTH} characters.`;
       }

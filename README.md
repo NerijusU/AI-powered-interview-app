@@ -8,62 +8,69 @@ A single-page web app for practising technical interviews (coding, system design
 
 ## For reviewers
 
-This project implements the task described in **`115.md`**. Below is what was built and how to run it.
+### Task requirements
 
-### Features implemented
+✅ - 1. Research the exact nature of interview preparation you want to do. This is intentional, as we want you to explore and get creative!
 
-| Requirement (115.md) | Implementation |
-|----------------------|----------------|
-| Single-page UI | Next.js App Router, one main page with settings + chat |
-| User inputs (topic, difficulty, type) | Prep type (coding / system-design / algorithms), difficulty (easy/medium/hard), optional topic, optional job description |
-| Call OpenAI with system prompt | `POST /api/prep` builds system + user prompts, calls Chat Completions API |
-| At least 5 prompt techniques | Base, zero-shot, few-shot, chain-of-thought, rubric (see **Prompt style** in UI) |
-| Tune at least one OpenAI setting | Temperature (0–2) configurable in UI; optional `max_tokens` in API |
-| At least one security guard | Request validation in `app/api/prep/route.ts`: allowed enums, length limits, message count and content limits |
-| Allowed models | gpt-4.1-nano, gpt-4o-mini (default), gpt-3.5-turbo-16k |
+- **Implementation**: Technical interview preparation app focusing on coding questions, system design, and algorithms.
 
-**Extra:** Multi-turn chat (start interview → send messages → reset), temperature slider, job description field, deployed on Vercel.
+✅ - 2. Figure out how you are going to build the front-end.
 
-### Tech stack
+- **Implementation**: Next.js 16 (App Router) + React 19 + Tailwind CSS + Axios.
 
-- **Frontend:** Next.js 16 (App Router), React 19, Tailwind CSS, Axios
-- **Backend:** Next.js API Route (`/api/prep`), OpenAI Node SDK
-- **Package manager:** pnpm
+✅ - 3. Create an OpenAI API Key for this project.
 
-### Getting started
+- **Implementation**: OpenAI API key created and saved in `.env.local`.
 
-1. **Prerequisites:** Node.js (LTS), pnpm (`npm install -g pnpm`).
+```env
+ OPENAI_API_KEY=sk-...
+```
 
-2. **Install and run:**
-   ```bash
-   pnpm install
-   pnpm dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000).
+✅ - 4. Choose one of the following OpenAI models for the project.
 
-3. **Environment:** Create `.env.local` with:
-   ```env
-   OPENAI_API_KEY=sk-...
-   ```
-   Use `.env.example` as a template (key not committed).
+- **Implementation**: Supports `gpt-4.1-nano`, `gpt-4o-mini` (default), and `gpt-3.5-turbo-16k`, selectable in the UI and defined in `app/api/prep/route.ts`.
 
-### Project structure
+✅ - 5. Write at least 5 system prompts with different techniques.
 
-| Path | Purpose |
-|------|--------|
-| `app/page.tsx` | Single page: parameter form, chat UI, start/reset/send message |
-| `app/api/prep/route.ts` | POST handler: validation, prompt build, OpenAI call, JSON response |
-| `lib/prompts.ts` | System/user prompt content and technique-specific variants |
-| `115.md` | Full task description and requirements |
-| `.cursor/rules/implementation-checklist.mdc` | Implementation checklist (for development) |
+- **Implementation**: Five prompt techniques implemented in `lib/prompts.ts` and exposed via the **Prompt style** selector: base, zero-shot, few-shot, chain-of-thought, and rubric.
 
-### API (POST /api/prep)
+✅ - 6. Tune at least one OpenAI setting.
 
-- **Body:** `prepType`, `difficulty`, `technique`, `model`, `temperature`, optional `topic`, `jobDescription`, optional `messages` (for multi-turn).
-- **Response:** `{ content: string }` (assistant text) or `{ message: string }` (error).
-- **Validation:** Enums and lengths enforced; invalid requests return 400 with a message.
+- **Implementation**: `temperature` is user-configurable and passed to the OpenAI API.
 
-### Task reference
+✅ - 7. Add at least one security guard to your app to prevent misuse.
 
-- **Task spec:** See `115.md` for full requirements, optional tasks, and evaluation criteria.
-- **Checklist:** See `.cursor/rules/implementation-checklist.mdc` for a tick-list of implemented items.
+- **Implementation**: Server-side validation in `app/api/prep/route.ts`:
+  - Enforces allowed enums and numeric bounds (`temperature`).
+  - Caps conversation history (`messages`) to 50 items.
+  - Validates each message (`role` must be `user`/`assistant`, `content` must be a non-empty string <= 8192 chars).
+  - Returns `400` with an error message for invalid requests.
+  - current implementation does **not** automatically summarize or truncate older chat turns, but relies on the guards above.
+
+### Optional tasks
+
+### Easy
+
+✅ - 4. Simulate different difficulty levels – Adjust the complexity of interview questions (easy, medium, hard).
+
+- **Implementation**: `Difficulty` dropdown (`easy` / `medium` / `hard`) in `app/page.tsx`, included in the OpenAI system prompt.
+
+### Medium
+
+✅ - 3. Deploy your app to the Internet.
+
+- **Implementation**: Deployed on Vercel.
+
+✅ - 7. Add a separate text field or another field to include the job description (the position) you are applying for and getting interview preparation for that particular position.
+
+- **Implementation**: `jobDescription` textarea in the settings panel; sent to the API and included in the user content.
+
+✅ - 8. Provide the user with the ability to choose from a list of LLMs.
+
+- **Implementation**: AI model dropdown in the settings panel.
+
+### Hard
+
+✅ - 1. Using Streamlit (Python) or React (JS) components, implement a full-fledged chatbot application instead of a one-time call to the OpenAI API.
+
+- **Implementation**: Multi-turn conversation workflow (send follow-ups with the `messages` array; `Reset interview` clears chat history and starts fresh).

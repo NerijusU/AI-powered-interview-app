@@ -49,7 +49,7 @@ export default function Home() {
    * Builds the request payload (session params, optional conversation messages).
    */
   function buildPayload(conversationMessages?: ChatMessage[]) {
-    return {
+    const payload = {
       prepType,
       difficulty,
       technique,
@@ -60,6 +60,17 @@ export default function Home() {
       ...(conversationMessages &&
         conversationMessages.length > 0 && { messages: conversationMessages }),
     };
+
+    console.log("[prep] Request → /api/prep", {
+      ...payload,
+      messagesPreview: conversationMessages?.map((m) => ({
+        role: m.role,
+        contentPreview:
+          m.content.length <= 300 ? m.content : `${m.content.slice(0, 300)}…`,
+      })),
+    });
+
+    return payload;
   }
 
   /**
@@ -340,7 +351,9 @@ export default function Home() {
             </form>
             {error && (
               <section className="mt-6 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4">
-                <p className="text-red-600 dark:text-red-400" role="alert">{error}</p>
+                <p className="text-red-600 dark:text-red-400" role="alert">
+                  {error}
+                </p>
               </section>
             )}
           </section>

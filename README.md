@@ -26,7 +26,7 @@ A single-page web app for practising technical interviews (coding, system design
  OPENAI_API_KEY=sk-...
 ```
 
-❗ - 4. Choose one of the following OpenAI models for the project.❓
+❗ - 4. Choose one of the following OpenAI models for the project.
 
 ✅ - **Implementation**: Supports `gpt-4.1-nano`, `gpt-4o-mini` (default), and `gpt-3.5-turbo-16k`, selectable in the UI and defined in `app/api/prep/route.ts`.
 

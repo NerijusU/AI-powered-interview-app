@@ -40,7 +40,12 @@ A single-page web app for practising technical interviews (coding, system design
 
 ✅ - 7. Add at least one security guard to your app to prevent misuse.
 
-- **Implementation**: Server-side validation in `app/api/prep/route.ts` (allowed enums, length limits, max messages, and message content limits). Invalid requests return a 400 error.
+- **Implementation**: Server-side validation in `app/api/prep/route.ts`:
+  - Enforces allowed enums and numeric bounds (`temperature`).
+  - Caps conversation history (`messages`) to 50 items.
+  - Validates each message (`role` must be `user`/`assistant`, `content` must be a non-empty string <= 8192 chars).
+  - Returns `400` with an error message for invalid requests.
+  - current implementation does **not** automatically summarize or truncate older chat turns, but relies on the guards above.
 
 ### Optional tasks
 

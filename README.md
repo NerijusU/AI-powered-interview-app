@@ -30,6 +30,20 @@ A single-page web app for practising technical interviews (coding, system design
 
 ✅ - **Implementation**: Supports `gpt-4.1-nano`, `gpt-4o-mini` (default), and `gpt-3.5-turbo-16k`, selectable in the UI and defined in `app/api/prep/route.ts`.
 
+<details>
+  <summary>See source snippet from <code>app/api/prep/route.ts</code></summary>
+
+```ts
+const ALLOWED_MODELS = [
+  "gpt-4.1-nano",
+  "gpt-4o-mini",
+  "gpt-3.5-turbo-16k",
+] as const;
+const DEFAULT_MODEL = "gpt-4o-mini";
+```
+
+</details>
+
 ❗ - 5. Write at least 5 system prompts with different techniques.
 
 ✅ - **Implementation**: Five prompt techniques implemented in `lib/prompts.ts` and exposed via the **Prompt style** selector: base, zero-shot, few-shot, chain-of-thought, and rubric.
